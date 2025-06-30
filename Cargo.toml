@@ -1,0 +1,27 @@
+[package]
+name = "solana-http-server"
+version = "0.1.0"
+edition = "2021"
+authors = ["Olumide Micheal codewithmide@gmail.com"]
+description = "High-performance HTTP server with Solana blockchain integration"
+repository = "https://github.com/codewithmide/solana-http-server"
+keywords = ["solana", "blockchain", "http", "server", "rust"]
+categories = ["web-programming::http-server", "cryptography::cryptocurrencies"]
+
+[dependencies]
+tokio = { version = "1.0", features = ["full"] }
+axum = "0.7"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors"] }
+solana-sdk = "1.18"
+solana-program = "1.18"
+spl-token = "4.0"
+spl-associated-token-account = "2.3"
+bs58 = "0.5"
+base64 = "0.22"
+ed25519-dalek = { version = "1.0", features = ["rand"] }
+rand = "0.8"
+thiserror = "1.0"
+tracing-subscriber = "0.3"
