@@ -24,6 +24,11 @@ pub async fn generate_keypair() -> Json<ApiResponse<KeypairResponse>> {
 pub async fn create_token(
     Json(payload): Json<CreateTokenRequest>,
 ) -> Result<Json<ApiResponse<InstructionResponse>>, (StatusCode, Json<ApiResponse<()>>)> {
+    // Check for missing fields
+    if payload.mint_authority.is_empty() || payload.mint.is_empty() {
+        return Err(error_response("Missing required fields".to_string()));
+    }
+
     // Validate inputs
     let mint_authority = validate_pubkey(&payload.mint_authority)
         .map_err(|e| error_response(format!("Invalid mint authority: {}", e)))?;
@@ -64,6 +69,11 @@ pub async fn create_token(
 pub async fn mint_token(
     Json(payload): Json<MintTokenRequest>,
 ) -> Result<Json<ApiResponse<InstructionResponse>>, (StatusCode, Json<ApiResponse<()>>)> {
+    // Check for missing fields
+    if payload.mint.is_empty() || payload.destination.is_empty() || payload.authority.is_empty() {
+        return Err(error_response("Missing required fields".to_string()));
+    }
+
     // Validate inputs
     let mint = validate_pubkey(&payload.mint)
         .map_err(|e| error_response(format!("Invalid mint: {}", e)))?;
@@ -108,6 +118,11 @@ pub async fn mint_token(
 pub async fn sign_message(
     Json(payload): Json<SignMessageRequest>,
 ) -> Result<Json<ApiResponse<SignMessageResponse>>, (StatusCode, Json<ApiResponse<()>>)> {
+    // Check for missing fields
+    if payload.message.is_empty() || payload.secret.is_empty() {
+        return Err(error_response("Missing required fields".to_string()));
+    }
+
     // Validate secret key
     let secret_bytes = validate_base58_secret(&payload.secret)
         .map_err(|e| error_response(e))?;
@@ -134,6 +149,11 @@ pub async fn sign_message(
 pub async fn verify_message(
     Json(payload): Json<VerifyMessageRequest>,
 ) -> Result<Json<ApiResponse<VerifyMessageResponse>>, (StatusCode, Json<ApiResponse<()>>)> {
+    // Check for missing fields
+    if payload.message.is_empty() || payload.signature.is_empty() || payload.pubkey.is_empty() {
+        return Err(error_response("Missing required fields".to_string()));
+    }
+
     // Validate public key
     let pubkey_bytes = bs58::decode(&payload.pubkey)
         .into_vec()
@@ -163,7 +183,12 @@ pub async fn verify_message(
 
 pub async fn send_sol(
     Json(payload): Json<SendSolRequest>,
-) -> Result<Json<ApiResponse<InstructionResponse>>, (StatusCode, Json<ApiResponse<()>>)> {
+) -> Result<Json<ApiResponse<SendSolResponse>>, (StatusCode, Json<ApiResponse<()>>)> {
+    // Check for missing fields
+    if payload.from.is_empty() || payload.to.is_empty() {
+        return Err(error_response("Missing required fields".to_string()));
+    }
+
     // Validate inputs
     let from = validate_pubkey(&payload.from)
         .map_err(|e| error_response(format!("Invalid from address: {}", e)))?;
@@ -177,16 +202,12 @@ pub async fn send_sol(
     // Create transfer instruction
     let instruction = system_instruction::transfer(&from, &to, payload.lamports);
 
-    let response = InstructionResponse {
+    let response = SendSolResponse {
         program_id: instruction.program_id.to_string(),
         accounts: instruction
             .accounts
             .iter()
-            .map(|acc| AccountMeta {
-                pubkey: acc.pubkey.to_string(),
-                is_signer: acc.is_signer,
-                is_writable: acc.is_writable,
-            })
+            .map(|acc| acc.pubkey.to_string())
             .collect(),
         instruction_data: general_purpose::STANDARD.encode(&instruction.data),
     };
@@ -196,7 +217,12 @@ pub async fn send_sol(
 
 pub async fn send_token(
     Json(payload): Json<SendTokenRequest>,
-) -> Result<Json<ApiResponse<InstructionResponse>>, (StatusCode, Json<ApiResponse<()>>)> {
+) -> Result<Json<ApiResponse<SendTokenResponse>>, (StatusCode, Json<ApiResponse<()>>)> {
+    // Check for missing fields
+    if payload.destination.is_empty() || payload.mint.is_empty() || payload.owner.is_empty() {
+        return Err(error_response("Missing required fields".to_string()));
+    }
+
     // Validate inputs
     let destination = validate_pubkey(&payload.destination)
         .map_err(|e| error_response(format!("Invalid destination: {}", e)))?;
@@ -225,15 +251,14 @@ pub async fn send_token(
     )
     .map_err(|e| error_response(format!("Failed to create instruction: {}", e)))?;
 
-    let response = InstructionResponse {
+    let response = SendTokenResponse {
         program_id: instruction.program_id.to_string(),
         accounts: instruction
             .accounts
             .iter()
-            .map(|acc| AccountMeta {
+            .map(|acc| SendTokenAccountMeta {
                 pubkey: acc.pubkey.to_string(),
                 is_signer: acc.is_signer,
-                is_writable: acc.is_writable,
             })
             .collect(),
         instruction_data: general_purpose::STANDARD.encode(&instruction.data),

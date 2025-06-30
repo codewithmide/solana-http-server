@@ -99,6 +99,27 @@ pub struct InstructionResponse {
 }
 
 #[derive(Serialize)]
+pub struct SendSolResponse {
+    pub program_id: String,
+    pub accounts: Vec<String>,
+    pub instruction_data: String,
+}
+
+#[derive(Serialize)]
+pub struct SendTokenAccountMeta {
+    pub pubkey: String,
+    #[serde(rename = "isSigner")]
+    pub is_signer: bool,
+}
+
+#[derive(Serialize)]
+pub struct SendTokenResponse {
+    pub program_id: String,
+    pub accounts: Vec<SendTokenAccountMeta>,
+    pub instruction_data: String,
+}
+
+#[derive(Serialize)]
 pub struct AccountMeta {
     pub pubkey: String,
     pub is_signer: bool,
