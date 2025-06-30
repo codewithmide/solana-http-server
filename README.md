@@ -1,6 +1,6 @@
 # Solana HTTP Server
 
-A Rust-based HTTP server providing Solana blockchain functionality through RESTful endpoints.
+A Rust-based HTTP server providing Solana blockchain functionality through RESTful endpoints
 
 ## Features
 
